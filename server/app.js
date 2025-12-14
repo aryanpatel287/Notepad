@@ -6,6 +6,12 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+// Initialize database (creates file and tables if missing)
+require("./src/config/db");
+
+// Routes
+const noteRoutes = require("./routes/noteRoutes");
+app.use("/api/notes", noteRoutes);
 
 // Base route
 app.get("/", (req, res) => {
