@@ -21,8 +21,8 @@ function Dashboard() {
       setLoading(true);
       const response = await fetch('http://localhost:5000/api/notes');
       if (!response.ok) throw new Error('Failed to fetch notes');
-      const data = await response.json();
-      setNotes(data);
+      const result = await response.json();
+      setNotes(result.data || []);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -41,8 +41,8 @@ function Dashboard() {
         body: JSON.stringify(noteData),
       });
       if (!response.ok) throw new Error('Failed to create note');
-      const newNote = await response.json();
-      setNotes([newNote, ...notes]); // Add to top
+      const result = await response.json();
+      setNotes([result.data, ...notes]); // Add to top
       setShowModal(false);
     } catch (err) {
       alert('Error creating note: ' + err.message);
@@ -58,8 +58,9 @@ function Dashboard() {
         body: JSON.stringify(noteData),
       });
       if (!response.ok) throw new Error('Failed to update note');
-      const updatedNote = await response.json();
-      setNotes(notes.map((note) => (note._id === id ? updatedNote : note)));
+      await response.json();
+      // Refresh notes after update
+      await fetchNotes();
       setShowModal(false);
       setEditingNote(null);
     } catch (err) {
@@ -139,10 +140,10 @@ function Dashboard() {
         <div className="notes-grid">
           {notes.map((note) => (
             <NoteCard
-              key={note._id}
+              key={note.id}
               note={note}
               onEdit={() => openEditModal(note)}
-              onDelete={() => handleDelete(note._id)}
+              onDelete={() => handleDelete(note.id)}
             />
           ))}
         </div>

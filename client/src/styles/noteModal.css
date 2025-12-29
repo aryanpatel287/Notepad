@@ -93,6 +93,7 @@
   font-family: inherit;
   transition: all 0.2s ease;
   background: white;
+  color: #2d3748;
 }
 
 .form-input:focus,
