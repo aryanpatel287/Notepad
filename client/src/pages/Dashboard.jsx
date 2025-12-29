@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import NoteCard from '../components/NoteCard';
 import NoteModal from '../components/NoteModal';
+import { getNotes, createNote, updateNote, deleteNote } from '../services/noteApi';
 import '../styles/dashboard.css';
 
 function Dashboard() {
@@ -19,14 +20,12 @@ function Dashboard() {
   const fetchNotes = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/notes');
-      if (!response.ok) throw new Error('Failed to fetch notes');
-      const result = await response.json();
-      setNotes(result.data || []);
+      const response = await getNotes();
+      setNotes(response.data.data || []);
       setError(null);
     } catch (err) {
-      setError(err.message);
-      setNotes([]); // Show empty state instead of loading forever
+      setError(err.response?.data?.message || err.message || 'Failed to fetch notes');
+      setNotes([]);
     } finally {
       setLoading(false);
     }
@@ -35,36 +34,23 @@ function Dashboard() {
   // CREATE - Add new note
   const handleCreate = async (noteData) => {
     try {
-      const response = await fetch('http://localhost:5000/api/notes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(noteData),
-      });
-      if (!response.ok) throw new Error('Failed to create note');
-      const result = await response.json();
-      setNotes([result.data, ...notes]); // Add to top
+      const response = await createNote(noteData);
+      setNotes([response.data.data, ...notes]);
       setShowModal(false);
     } catch (err) {
-      alert('Error creating note: ' + err.message);
+      alert('Error creating note: ' + (err.response?.data?.message || err.message));
     }
   };
 
   // UPDATE - Edit existing note
   const handleUpdate = async (id, noteData) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/notes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(noteData),
-      });
-      if (!response.ok) throw new Error('Failed to update note');
-      await response.json();
-      // Refresh notes after update
+      await updateNote(id, noteData);
       await fetchNotes();
       setShowModal(false);
       setEditingNote(null);
     } catch (err) {
-      alert('Error updating note: ' + err.message);
+      alert('Error updating note: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -73,13 +59,10 @@ function Dashboard() {
     if (!confirm('Are you sure you want to delete this note?')) return;
     
     try {
-      const response = await fetch(`http://localhost:5000/api/notes/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete note');
-      setNotes(notes.filter((note) => note._id !== id));
+      await deleteNote(id);
+      setNotes(notes.filter((note) => note.id !== id));
     } catch (err) {
-      alert('Error deleting note: ' + err.message);
+      alert('Error deleting note: ' + (err.response?.data?.message || err.message));
     }
   };
 
