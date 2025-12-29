@@ -1,19 +1,20 @@
 const express = require("express");
 const cors = require("cors");
 
-const app = express();
-
 const noteRoutes = require("./routes/noteRoutes");
 
-app.use("/api/notes", noteRoutes);
+const app = express();
 
-// Middleware
+// middleware
 app.use(cors());
 app.use(express.json());
 
-// Base route
+// base route
 app.get("/", (req, res) => {
   res.send("Backend server is running");
 });
+
+// notes API
+app.use("/api/notes", noteRoutes);
 
 module.exports = app;
